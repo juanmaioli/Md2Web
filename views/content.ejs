@@ -1,0 +1,22 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+    <% 
+    const parts = currentPath.split('/');
+    let buildPath = '';
+    parts.forEach((part, index) => { 
+        buildPath += (index === 0 ? '' : '/') + part;
+        if (index === parts.length - 1) { %>
+            <li class="breadcrumb-item active" aria-current="page"><%= part.replace('.md', '') %></li>
+        <% } else { %>
+            <li class="breadcrumb-item"><%= part %></li>
+        <% }
+    }); %>
+  </ol>
+</nav>
+
+<hr>
+
+<article class="markdown-body">
+    <%- content %>
+</article>

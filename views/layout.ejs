@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Md2Web - <%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .content-area {
+            height: 100vh;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .nav-link {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.9rem;
+        }
+        .folder-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 sidebar bg-body-tertiary p-3">
+                <h4 class="mb-4">📚 Md2Web</h4>
+                
+                <!-- Buscador -->
+                <div class="mb-3">
+                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="🔍 Buscar título...">
+                    <div id="searchResults" class="list-group mt-2 position-absolute w-100 shadow" style="z-index: 1000; display: none;"></div>
+                </div>
+
+                <div id="fileTree">
+                    <%- include('sidebar', { tree: tree, currentPath: currentPath }) %>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="col-md-9 col-lg-10 content-area">
+                <div class="card shadow-sm p-4">
+                    <%- body %>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        // Inicializar resaltado de sintaxis
+        hljs.highlightAll();
+
+        // Lógica de Live Reload
+        const ws = new WebSocket(`ws://${window.location.host}`);
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'reload') {
+                // Solo recargar si el archivo abierto es el que cambió
+                const currentFile = window.location.pathname.substring(1);
+                if (decodeURIComponent(currentFile) === data.path) {
+                    window.location.reload();
+                }
+            } else if (data.type === 'update') {
+                // Actualizar sidebar para cualquier cambio estructural
+                window.location.reload();
+            }
+        };
+
+        // Lógica de Búsqueda
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        searchInput.addEventListener('input', async (e) => {
+            const query = e.target.value;
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            const response = await fetch(`/api/search?q=${query}`);
+            const data = await response.json();
+            
+            if (data.length > 0) {
+                searchResults.innerHTML = data.map(file => `
+                    <a href="/${file.relative_path}" class="list-group-item list-group-item-action py-2">
+                        📄 ${file.title}
+                    </a>
+                `).join('');
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Cerrar resultados al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

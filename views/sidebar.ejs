@@ -1,0 +1,26 @@
+<ul class="nav flex-column">
+    <% if (currentPath !== '') { 
+        const parts = currentPath.split('/');
+        const parentDir = parts.slice(0, -1).join('/'); %>
+        <li class="nav-item">
+            <a class="nav-link text-warning fw-bold" href="<%= parentDir === '' ? '/' : '/explore/' + parentDir %>">
+                ⬅️ Volver
+            </a>
+        </li>
+    <% } %>
+
+    <% tree.forEach(item => { %>
+        <li class="nav-item">
+            <% if (item.is_directory) { %>
+                <a class="nav-link fw-bold text-info" href="/explore/<%= item.relative_path %>">
+                    📁 <%= item.title %>
+                </a>
+            <% } else { %>
+                <a class="nav-link <%= currentPath === item.relative_path ? 'active bg-primary text-white rounded' : 'text-body-secondary' %>" 
+                   href="/<%= item.relative_path %>">
+                    📄 <%= item.title %>
+                </a>
+            <% } %>
+        </li>
+    <% }); %>
+</ul>

@@ -1,0 +1,48 @@
+<div class="py-3">
+    <% if (locals.isExplore) { %>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+                <% const parts = relativeDir.split('/');
+                   let bPath = '';
+                   parts.forEach((p, i) => { 
+                       bPath += (i === 0 ? '' : '/') + p; %>
+                       <li class="breadcrumb-item active"><%= p %></li>
+                <% }); %>
+            </ol>
+        </nav>
+    <% } else { %>
+        <h1 class="display-5">👋 Md2Web</h1>
+        <p class="text-secondary">Explorando la raíz de tus notas.</p>
+    <% } %>
+
+    <hr>
+
+    <div class="row g-3">
+        <% tree.forEach(item => { %>
+            <div class="col-md-4 col-lg-3">
+                <a href="<%= item.is_directory ? '/explore/' + item.relative_path : '/' + item.relative_path %>" 
+                   class="card h-100 text-decoration-none bg-body-tertiary border-0 shadow-sm hover-shadow transition">
+                    <div class="card-body text-center p-4">
+                        <div class="display-6 mb-2">
+                            <%= item.is_directory ? '📁' : '📄' %>
+                        </div>
+                        <h6 class="card-title text-truncate mb-0">
+                            <%= item.title %>
+                        </h6>
+                    </div>
+                </a>
+            </div>
+        <% }); %>
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    }
+    .transition {
+        transition: all 0.3s ease;
+    }
+</style>

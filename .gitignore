@@ -1,0 +1,5 @@
+node_modules/
+md2web.db
+.env
+.gemini.md
+GEMINI.md

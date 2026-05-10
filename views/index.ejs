@@ -12,13 +12,13 @@
             </ol>
         </nav>
     <% } else { %>
-        <h1 class="display-5">👋 Md2Web</h1>
+        <h1 class="display-5">📚 Md2Web</h1>
         <p class="text-secondary">Explorando la raíz de tus notas.</p>
     <% } %>
 
     <% if (locals.readmeContent) { %>
         <div class="mt-4 p-4 card shadow-sm">
-            <article class="markdown-body">
+            <article class="markdown-rendered">
                 <%- readmeContent %>
             </article>
         </div>

@@ -1,22 +1,28 @@
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="/">Inicio</a></li>
-    <% 
-    const parts = currentPath.split('/');
-    let buildPath = '';
-    parts.forEach((part, index) => { 
-        buildPath += (index === 0 ? '' : '/') + part;
-        if (index === parts.length - 1) { %>
-            <li class="breadcrumb-item active" aria-current="page"><%= part.replace('.md', '') %></li>
-        <% } else { %>
-            <li class="breadcrumb-item"><%= part %></li>
-        <% }
-    }); %>
-  </ol>
-</nav>
+<div class="d-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb" class="m-0">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+        <% 
+        const parts = currentPath.split('/');
+        let buildPath = '';
+        parts.forEach((part, index) => { 
+            buildPath += (index === 0 ? '' : '/') + part;
+            if (index === parts.length - 1) { %>
+                <li class="breadcrumb-item active" aria-current="page"><%= part.replace('.md', '') %></li>
+            <% } else { %>
+                <li class="breadcrumb-item"><%= part %></li>
+            <% }
+        }); %>
+      </ol>
+    </nav>
+    
+    <a href="/raw/<%= currentPath %>" class="btn btn-sm btn-outline-info shadow-sm" title="Descargar nota">
+        📥 Descargar MD
+    </a>
+</div>
 
 <hr>
 
-<article class="markdown-body">
+<article class="markdown-rendered">
     <%- content %>
 </article>

@@ -11,8 +11,10 @@
 
 ## 🚀 Características Principales
 
-- **🎨 Renderizado HTML Pro (Estilo GitHub):** Visualización idéntica a GitHub con soporte para etiquetas HTML nativas y resaltado de sintaxis profesional.
-- **🏠 Home Inteligente:** Renderizado automático de `README.md` como página de inicio del sitio.
+- **🎨 Sistema de Temas Personalizado:** Soporte para más de 20 temas de Obsidian (Dracula, Catppuccin, Tokyo Night, etc.) que transforman toda la web al vuelo.
+- **📥 Descarga de Notas:** Botón integrado para descargar el archivo `.md` original con un solo clic.
+- **💻 Resaltado de Sintaxis Pro:** Integración nativa con Highlight.js pre-renderizado en el servidor.
+- **🏠 Home Inteligente:** Renderizado automático de `README.md` como página de inicio.
 - **⚡ Carga Bajo Demanda (Lazy Loading):** Navegación instantánea incluso en directorios con miles de archivos.
 - **🔄 Live Reload:** Los cambios que realices en tus archivos `.md` se reflejan automáticamente en el navegador sin recargar manualmente.
 - **📁 Estructura Intuitiva:** Sigue la jerarquía de tus carpetas locales para generar el menú de navegación.

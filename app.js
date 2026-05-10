@@ -5,8 +5,20 @@ const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
 const { marked } = require('marked');
+const { markedHighlight } = require('marked-highlight');
+const hljs = require('highlight.js');
 
-// Configuración moderna de marked
+// Configuración moderna de marked con Highlight.js integrado
+marked.use(
+    markedHighlight({
+        langPrefix: 'hljs language-',
+        highlight(code, lang) {
+            const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+            return hljs.highlight(code, { language }).value;
+        }
+    })
+);
+
 marked.use({
     gfm: true,
     breaks: true,
@@ -14,6 +26,7 @@ marked.use({
     headerIds: false
 });
 
+const { getSetting, updateSetting } = require('./database');
 const initWatcher = require('./watcher');
 
 const app = express();
@@ -21,6 +34,7 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const MD_PATH = process.env.MD_PATH || path.join(__dirname, 'notes');
+const THEMES_PATH = path.join(__dirname, 'themes');
 const PORT = process.env.PORT || 8050;
 
 // Función para obtener contenido de un directorio bajo demanda
@@ -38,6 +52,14 @@ const getDirectoryContent = (relativeDir = '') => {
         .sort((a, b) => b.is_directory - a.is_directory || a.title.localeCompare(b.title));
 };
 
+// Función para obtener la lista de temas disponibles
+const getAvailableThemes = () => {
+    if (!fs.existsSync(THEMES_PATH)) return [];
+    return fs.readdirSync(THEMES_PATH, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+};
+
 // Configuración de EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -45,6 +67,14 @@ app.set('views', path.join(__dirname, 'views'));
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/themes', express.static(THEMES_PATH));
+
+// Inyectar configuración de tema en todas las vistas
+app.use((req, res, next) => {
+    res.locals.currentTheme = getSetting('theme') || 'default';
+    res.locals.availableThemes = getAvailableThemes();
+    next();
+});
 
 // WebSockets
 const broadcast = (data) => {
@@ -58,7 +88,6 @@ initWatcher(MD_PATH, broadcast);
 // Rutas
 app.get('/', (req, res) => {
     const items = getDirectoryContent('');
-    // Intentar buscar un README.md en la raíz para mostrarlo en la home
     const readmeFile = items.find(i => i.title.toLowerCase() === 'readme' && !i.is_directory);
     let readmeContent = null;
 
@@ -71,6 +100,25 @@ app.get('/', (req, res) => {
         if (err) return res.status(500).send(err.message);
         res.render('layout', { title: 'Inicio', tree: items, currentPath: '', body: html });
     });
+});
+
+// API para cambiar el tema
+app.post('/api/settings/theme', (req, res) => {
+    const { theme } = req.body;
+    updateSetting('theme', theme);
+    res.json({ success: true });
+});
+
+// Ruta para descargar el archivo Markdown original
+app.get(/^\/raw\/(.*)/, (req, res) => {
+    const relativePath = decodeURIComponent(req.params[0]);
+    const fullPath = path.join(MD_PATH, relativePath);
+
+    if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
+        res.download(fullPath);
+    } else {
+        res.status(404).send('Archivo no encontrado');
+    }
 });
 
 // Ruta para archivos Markdown (PRIORIDAD)

@@ -35,9 +35,9 @@ PORT=8050
 npm start
 ```
 
-## 🐳 Despliegue con Docker y HTTPS
+### 🐳 Despliegue con Docker y HTTPS
 
-Md2Web está optimizado para entornos de contenedores con seguridad SSL integrada.
+Md2Web está optimizado para entornos de contenedores con una arquitectura robusta basada en **Node 20-Slim** (Debian) para asegurar compatibilidad total con módulos nativos.
 
 ### 1. Requisitos Previos
 - Tener instalados **Docker** y **Docker Compose**.

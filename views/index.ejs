@@ -16,6 +16,14 @@
         <p class="text-secondary">Explorando la raíz de tus notas.</p>
     <% } %>
 
+    <% if (locals.readmeContent) { %>
+        <div class="mt-4 p-4 card shadow-sm">
+            <article class="markdown-body">
+                <%- readmeContent %>
+            </article>
+        </div>
+    <% } %>
+
     <hr>
 
     <div class="row g-3">

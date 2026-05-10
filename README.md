@@ -11,6 +11,8 @@
 
 ## 🚀 Características Principales
 
+- **🎨 Renderizado HTML Pro (Estilo GitHub):** Visualización idéntica a GitHub con soporte para etiquetas HTML nativas y resaltado de sintaxis profesional.
+- **🏠 Home Inteligente:** Renderizado automático de `README.md` como página de inicio del sitio.
 - **⚡ Carga Bajo Demanda (Lazy Loading):** Navegación instantánea incluso en directorios con miles de archivos.
 - **🔄 Live Reload:** Los cambios que realices en tus archivos `.md` se reflejan automáticamente en el navegador sin recargar manualmente.
 - **📁 Estructura Intuitiva:** Sigue la jerarquía de tus carpetas locales para generar el menú de navegación.

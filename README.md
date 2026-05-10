@@ -1,59 +1,48 @@
 # 📚 Md2Web
 
-¡Bienvenido a **Md2Web**! Una aplicación potente y ligera diseñada para convertir tus carpetas locales de archivos Markdown en un sitio web estructurado y elegante en tiempo real.
+¡Bienvenido a **Md2Web**! Una solución de alto rendimiento para transformar tus notas locales en una experiencia web profesional.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js">
-  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite">
-  <img src="https://img.shields.io/badge/Bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" alt="Bootstrap">
-</p>
+---
 
-## 🚀 Características Principales
+## ✨ Características Destacadas
 
-- **🎨 Sistema de Temas Personalizado:** Soporte para más de 20 temas de Obsidian (Dracula, Catppuccin, Tokyo Night, etc.) que transforman toda la web al vuelo.
-- **📥 Descarga de Notas:** Botón integrado para descargar el archivo `.md` original con un solo clic.
-- **💻 Resaltado de Sintaxis Pro:** Integración nativa con Highlight.js pre-renderizado en el servidor.
-- **🏠 Home Inteligente:** Renderizado automático de `README.md` como página de inicio.
-- **⚡ Carga Bajo Demanda (Lazy Loading):** Navegación instantánea incluso en directorios con miles de archivos.
-- **🔄 Live Reload:** Los cambios que realices en tus archivos `.md` se reflejan automáticamente en el navegador sin recargar manualmente.
-- **📁 Estructura Intuitiva:** Sigue la jerarquía de tus carpetas locales para generar el menú de navegación.
-- **🔍 Buscador Focalizado:** Encuentra tus notas rápidamente por título dentro del directorio actual.
-- **🌗 Interfaz Moderna (UpdateUI):** Diseño limpio con **Bootstrap 5.3**, modo oscuro automático y resaltado de sintaxis con **Highlight.js**.
-- **🖼️ Soporte de Medios:** Visualización de imágenes y archivos estáticos locales referenciados en tus notas.
+- **🎨 Personalización Total:** Soporte para **20+ temas de Obsidian** (Dracula, Catppuccin, Nord, etc.).
+- **⚡ Velocidad Instantánea:** Carga bajo demanda (*Lazy Loading*) para catálogos de miles de notas.
+- **🔄 Flujo en Vivo:** Sincronización automática vía **WebSockets** al guardar cambios.
+- **💻 Código Impecable:** Resaltado de sintaxis pro con **Highlight.js** pre-renderizado.
+- **📥 Backup Rápido:** Descarga directa de archivos `.md` desde la interfaz.
+- **🏠 Inteligencia:** Muestra automáticamente tu `README.md` como portal de inicio.
 
-## 🛠️ Requisitos e Instalación
+---
 
-1. **Clonar el repositorio:**
-   ```bash
-   git clone <url-del-repo>
-   cd Md2Web
-   ```
+## 🛠️ Instalación y Despliegue
 
-2. **Instalar dependencias:**
-   ```bash
-   npm install
-   ```
+### 1. Preparación
+```bash
+git clone <tu-repositorio>
+cd Md2Web
+npm install
+```
 
-3. **Configurar el entorno:**
-   Crea un archivo `.env` en la raíz con el siguiente contenido:
-   ```env
-   MD_PATH=/tu/ruta/de/notas
-   PORT=8050
-   ```
+### 2. Configuración (.env)
+```env
+MD_PATH=/home/juan/Documentos/Notas/
+PORT=8050
+```
 
-4. **Iniciar la aplicación:**
-   ```bash
-   npm start
-   ```
+### 3. Lanzamiento
+```bash
+npm start
+```
 
-## 📂 Estructura del Proyecto
+---
 
-- `app.js`: Servidor principal, rutas y lógica de WebSockets.
-- `database.js`: Conectividad con SQLite para persistencia y búsquedas.
-- `watcher.js`: Sistema de vigilancia de archivos en tiempo real.
-- `views/`: Plantillas dinámicas (EJS) para la interfaz de usuario.
+## 👤 Autor e Identidad
 
-## 👤 Autor
+Proyecto desarrollado por **Juan Gabriel Maioli**.  
+Diseñado para la accesibilidad, la velocidad y la elegancia técnica.
 
-Desarrollado con ❤️ por **Juan Gabriel Maioli**.
+---
+
+## 📄 Licencia
+Este proyecto es de uso personal y privado.

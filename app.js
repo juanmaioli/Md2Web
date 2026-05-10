@@ -1,12 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
 const { marked } = require('marked');
 const { markedHighlight } = require('marked-highlight');
 const hljs = require('highlight.js');
+const { getSetting, updateSetting } = require('./database');
+const initWatcher = require('./watcher');
 
 // Configuración moderna de marked con Highlight.js integrado
 marked.use(
@@ -26,16 +29,31 @@ marked.use({
     headerIds: false
 });
 
-const { getSetting, updateSetting } = require('./database');
-const initWatcher = require('./watcher');
-
 const app = express();
-const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+let server;
 
+const PORT = process.env.PORT || 8050;
 const MD_PATH = process.env.MD_PATH || path.join(__dirname, 'notes');
 const THEMES_PATH = path.join(__dirname, 'themes');
-const PORT = process.env.PORT || 8050;
+const SSL_PATH = path.join(__dirname, 'ssl');
+
+// Configuración de Servidor (HTTPS opcional)
+const certPath = path.join(SSL_PATH, 'apache.crt');
+const keyPath = path.join(SSL_PATH, 'apache.key');
+
+if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+    const options = {
+        cert: fs.readFileSync(certPath),
+        key: fs.readFileSync(keyPath)
+    };
+    server = https.createServer(options, app);
+    console.log('🔒 Servidor configurado con HTTPS');
+} else {
+    server = http.createServer(app);
+    console.log('⚠️ Servidor configurado con HTTP (Sin certificados)');
+}
+
+const wss = new WebSocket.Server({ server });
 
 // Función para obtener contenido de un directorio bajo demanda
 const getDirectoryContent = (relativeDir = '') => {

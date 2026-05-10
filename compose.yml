@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  md2web:
+    build: .
+    container_name: md2web_app
+    restart: always
+    ports:
+      - "8050:8050"
+    volumes:
+      # Montar carpeta de notas
+      - /home/juan/Documentos/Notas:/app/notes:ro
+      # Montar certificados SSL
+      - ./ssl:/app/ssl:ro
+      # Persistencia de base de datos
+      - ./md2web.db:/app/md2web.db
+    environment:
+      - MD_PATH=/app/notes
+      - PORT=8050
+    # Configurar el hostname para que responda internamente (opcional)
+    hostname: drawers.docker

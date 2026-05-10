@@ -35,9 +35,30 @@ PORT=8050
 npm start
 ```
 
+## 🐳 Despliegue con Docker y HTTPS
+
+Md2Web está optimizado para entornos de contenedores con seguridad SSL integrada.
+
+### 1. Requisitos Previos
+- Tener instalados **Docker** y **Docker Compose**.
+- Colocar tus certificados (`apache.crt` y `apache.key`) en la carpeta `./ssl`.
+
+### 2. Puesta en Marcha
+```bash
+# Construir la imagen e iniciar el contenedor
+docker compose up -d --build
+```
+
+### 3. Acceso Seguro
+La aplicación detectará automáticamente los certificados y habilitará **HTTPS** y **WSS** (WebSockets Seguros).
+Accede en: [https://drawers.docker:8050](https://drawers.docker:8050)
+
+> **Tip:** Agregá `127.0.0.1 drawers.docker` a tu archivo `/etc/hosts` para usar el dominio personalizado.
+
 ---
 
-## 👤 Autor e Identidad
+## 📂 Estructura del Proyecto
+
 
 Proyecto desarrollado por **Juan Gabriel Maioli**.  
 Diseñado para la accesibilidad, la velocidad y la elegancia técnica.

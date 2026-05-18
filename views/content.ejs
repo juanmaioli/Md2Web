@@ -16,9 +16,14 @@
       </ol>
     </nav>
     
-    <a href="/raw/<%= currentPath %>" class="btn btn-sm btn-outline-info shadow-sm" title="Descargar nota">
-        📥 Descargar MD
-    </a>
+    <div class="d-flex gap-2">
+        <button id="btnEscuchar" class="btn btn-sm btn-outline-warning shadow-sm" title="Escuchar nota">
+            🔊 Escuchar
+        </button>
+        <a href="/raw/<%= currentPath %>" class="btn btn-sm btn-outline-info shadow-sm" title="Descargar nota">
+            📥 Descargar MD
+        </a>
+    </div>
 </div>
 
 <hr>

@@ -100,10 +100,54 @@
             background-color: var(--text-accent, #1f6feb) !important;
             color: #ffffff !important;
         }
+
+        /* Estilos TTS (Karaoke) */
+        .tts-chunk {
+            transition: background-color 0.2s, color 0.2s;
+            padding: 1px 2px;
+            border-radius: 4px;
+            cursor: default;
+        }
+        .tts-active {
+            background-color: rgba(255, 193, 7, 0.45);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+        }
+        [data-bs-theme="light"] .tts-active {
+            background-color: rgba(255, 193, 7, 0.6);
+            color: #000;
+        }
     </style>
 </head>
 <body class="theme-dark">
+    <!-- Modal de Lectura -->
+    <div class="modal fade" id="modalLectura" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="container d-flex justify-content-between align-items-center">
+                        <h5 class="modal-title">🎙️ Escuchando nota...</h5>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <small>Voz:</small>
+                                <select id="voiceSelect" class="form-select form-select-sm border-0 bg-transparent fw-bold text-decoration-underline" style="width: auto;"></select>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body p-5">
+                    <div class="container" style="max-width: 800px;">
+                        <h1 id="modalTitular" class="fw-bold mb-4"></h1>
+                        <div id="modalCuerpo" class="fs-4 text-start"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container-fluid">
+
         <div class="row">
             <!-- Sidebar -->
             <nav class="col-md-3 col-lg-2 sidebar p-3">
@@ -218,6 +262,104 @@
             if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
                 searchResults.style.display = 'none';
             }
+        });
+
+        // --- Lógica TTS (Web Speech API) ---
+        const btnEscuchar = document.getElementById('btnEscuchar');
+        const modalLectura = new bootstrap.Modal(document.getElementById('modalLectura'));
+        const modalTitular = document.getElementById('modalTitular');
+        const modalCuerpo = document.getElementById('modalCuerpo');
+        const voiceSelect = document.getElementById('voiceSelect');
+
+        function cargarVoces() {
+            const voices = window.speechSynthesis.getVoices();
+            const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
+            
+            voiceSelect.innerHTML = '';
+            spanishVoices.forEach(voice => {
+                const option = document.createElement('option');
+                option.textContent = `${voice.name} (${voice.lang})`;
+                option.value = voice.name;
+                
+                // Prioridad: Google español de EE.UU. > es-AR
+                if (voice.name === 'Google español de Estados Unidos') {
+                    option.selected = true;
+                } else if (voice.lang === 'es-AR' && !voiceSelect.querySelector('[selected]')) {
+                    option.selected = true;
+                }
+                
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = cargarVoces;
+        }
+        cargarVoces();
+
+        function leerTexto(texto, container, config = {}) {
+            const { voiceName, rate = 1.0, pitch = 1.0 } = config;
+            const audioChunks = [];
+            const allSpans = [];
+            container.innerHTML = '';
+
+            const sentences = texto.match(/[^.!?\n]+[.!?\n]*/g) || [texto];
+            sentences.forEach(s => {
+                const cleanText = s.trim();
+                if (cleanText.length > 0) {
+                    const span = document.createElement('span');
+                    span.className = 'tts-chunk';
+                    span.innerText = s;
+                    container.appendChild(span);
+                    allSpans.push(span);
+                    audioChunks.push(cleanText);
+                }
+            });
+
+            window.speechSynthesis.cancel();
+            let chunkIndex = 0;
+
+            function hablarSiguiente() {
+                if (chunkIndex >= audioChunks.length || !document.getElementById('modalLectura').classList.contains('show')) {
+                    return;
+                }
+
+                allSpans.forEach(s => s.classList.remove('tts-active'));
+                allSpans[chunkIndex].classList.add('tts-active');
+                allSpans[chunkIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                const utterance = new SpeechSynthesisUtterance(audioChunks[chunkIndex]);
+                const voices = window.speechSynthesis.getVoices();
+                const voice = voices.find(v => v.name === voiceSelect.value);
+                if (voice) utterance.voice = voice;
+                utterance.rate = rate;
+                utterance.pitch = pitch;
+
+                utterance.onend = () => {
+                    chunkIndex++;
+                    hablarSiguiente();
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+
+            setTimeout(hablarSiguiente, 150);
+        }
+
+        if (btnEscuchar) {
+            btnEscuchar.addEventListener('click', () => {
+                const article = document.querySelector('.markdown-rendered');
+                const titulo = document.querySelector('.breadcrumb-item.active')?.innerText || 'Nota';
+                const contenido = article.innerText;
+
+                modalTitular.innerText = titulo;
+                modalLectura.show();
+                leerTexto(contenido, modalCuerpo);
+            });
+        }
+
+        document.getElementById('modalLectura').addEventListener('hidden.bs.modal', () => {
+            window.speechSynthesis.cancel();
         });
     </script>
 </body>

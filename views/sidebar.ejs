@@ -3,7 +3,7 @@
         const parts = currentPath.split('/');
         const parentDir = parts.slice(0, -1).join('/'); %>
         <li class="nav-item">
-            <a class="nav-link text-warning fw-bold" href="<%= parentDir === '' ? '/' : '/explore/' + parentDir %>">
+            <a class="nav-link" href="<%= parentDir === '' ? '/' : '/explore/' + parentDir %>">
                 ⬅️ Volver
             </a>
         </li>
@@ -12,7 +12,7 @@
     <% tree.forEach(item => { %>
         <li class="nav-item">
             <% if (item.is_directory) { %>
-                <a class="nav-link fw-bold text-info" href="/explore/<%= item.relative_path %>">
+                <a class="nav-link" href="/explore/<%= item.relative_path %>">
                     📁 <%= item.title %>
                 </a>
             <% } else { %>

@@ -7,6 +7,7 @@
 ## ✨ Características Destacadas
 
 - **🎨 Estética de Vanguardia:** Soporte nativo para **20+ temas de Obsidian** (Dracula, Catppuccin, Tokyo Night, etc.).
+- **🔤 Tipografía Accesible:** Integración de la tipografía **Lato** de Google Fonts en toda la interfaz para maximizar la legibilidad y accesibilidad visual.
 - **🎙️ Escucha Activa (TTS):** Transforma tus notas en audiolibros con **resaltado tipo karaoke** y voces de alta calidad.
 - **⚡ Rendimiento Extremo:** Navegación fluida y carga instantánea incluso con miles de archivos.
 - **🔄 Live Sync:** Visualización en tiempo real de tus cambios mediante **WebSockets**.

@@ -84,6 +84,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/themes', express.static(THEMES_PATH));
 
@@ -134,6 +135,51 @@ app.get(/^\/raw\/(.*)/, (req, res) => {
 
     if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
         res.download(fullPath);
+    } else {
+        res.status(404).send('Archivo no encontrado');
+    }
+});
+
+// Ruta para editar el archivo Markdown
+app.get(/^\/edit\/(.*)/, (req, res) => {
+    const relativePath = decodeURIComponent(req.params[0]);
+    const fullPath = path.join(MD_PATH, relativePath);
+    const relativeDir = path.dirname(relativePath) === '.' ? '' : path.dirname(relativePath);
+
+    if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
+        const content = fs.readFileSync(fullPath, 'utf-8');
+        const items = getDirectoryContent(relativeDir);
+
+        res.render('edit', { 
+            content: content, 
+            currentPath: relativePath 
+        }, (err, html) => {
+            if (err) return res.status(500).send(err.message);
+            res.render('layout', { 
+                title: 'Editar ' + path.basename(relativePath, '.md'), 
+                tree: items, 
+                currentPath: relativePath, 
+                body: html 
+            });
+        });
+    } else {
+        res.status(404).send('Archivo no encontrado');
+    }
+});
+
+// Ruta para guardar los cambios del archivo Markdown
+app.post(/^\/save\/(.*)/, (req, res) => {
+    const relativePath = decodeURIComponent(req.params[0]);
+    const fullPath = path.join(MD_PATH, relativePath);
+    const { content } = req.body;
+
+    if (fs.existsSync(fullPath) && fs.lstatSync(fullPath).isFile()) {
+        try {
+            fs.writeFileSync(fullPath, content, 'utf-8');
+            res.redirect('/' + relativePath);
+        } catch (error) {
+            res.status(500).send('Error al guardar el archivo: ' + error.message);
+        }
     } else {
         res.status(404).send('Archivo no encontrado');
     }

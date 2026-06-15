@@ -1,0 +1,66 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb" class="m-0">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+        <% 
+        const parts = currentPath.split('/');
+        let buildPath = '';
+        parts.forEach((part, index) => { 
+            buildPath += (index === 0 ? '' : '/') + part;
+            if (index === parts.length - 1) { %>
+                <li class="breadcrumb-item active" aria-current="page"><%= part.replace('.md', '') %></li>
+            <% } else { %>
+                <li class="breadcrumb-item"><%= part %></li>
+            <% }
+        }); %>
+      </ol>
+    </nav>
+
+    <div class="d-flex gap-2">
+        <a href="/<%= currentPath %>" class="btn btn-sm btn-outline-secondary px-3">
+            ❌ Cancelar
+        </a>
+        <button type="submit" form="editForm" class="btn btn-sm btn-primary px-3">
+            💾 Guardar cambios
+        </button>
+    </div>
+</div>
+
+<hr>
+
+<div class="edit-container">
+    <h3 class="mb-4">📝 Editar nota</h3>
+    
+    <form action="/save/<%= currentPath %>" method="POST" id="editForm" class="d-flex flex-column gap-3">
+        <div class="form-group">
+            <textarea 
+                name="content" 
+                id="markdownEditor" 
+                class="form-control editor-textarea shadow-sm" 
+                rows="20" 
+                placeholder="Escribe tu nota en Markdown aquí..."
+                required><%= content %></textarea>
+        </div>
+    </form>
+</div>
+
+<style>
+    .editor-textarea {
+        background-color: var(--background-secondary) !important;
+        color: var(--text-normal) !important;
+        border: 1px solid var(--border-color) !important;
+        font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+        font-size: 1rem;
+        line-height: 1.5;
+        resize: vertical;
+        padding: 1.25rem;
+        border-radius: 8px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .editor-textarea:focus {
+        border-color: var(--text-accent) !important;
+        box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.2) !important;
+        outline: none;
+    }
+</style>

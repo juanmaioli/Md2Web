@@ -8,6 +8,7 @@
 
 - **🎨 Estética de Vanguardia:** Soporte nativo para **20+ temas de Obsidian** (Dracula, Catppuccin, Tokyo Night, etc.).
 - **🔤 Tipografía Accesible:** Integración de la tipografía **Lato** de Google Fonts en toda la interfaz para maximizar la legibilidad y accesibilidad visual.
+- **📝 Edición Web Directa:** Modificación de notas al vuelo desde el navegador con un editor adaptado al tema y guardado directo en disco.
 - **🎙️ Escucha Activa (TTS):** Transforma tus notas en audiolibros con **resaltado tipo karaoke** y voces de alta calidad.
 - **⚡ Rendimiento Extremo:** Navegación fluida y carga instantánea incluso con miles de archivos.
 - **🔄 Live Sync:** Visualización en tiempo real de tus cambios mediante **WebSockets**.
@@ -25,6 +26,17 @@ Md2Web ahora incluye un motor de **Text-to-Speech (TTS)** avanzado diseñado par
 - **Efecto Karaoke:** Resaltado visual sincronizado de la frase que se está leyendo.
 - **Modo Inmersivo:** Interfaz a pantalla completa para una lectura sin distracciones.
 - **Auto-Scroll:** La pantalla acompaña la lectura para que nunca pierdas el hilo.
+
+---
+
+## 📝 Nueva Función: Edición Web Directa
+
+Ahora podés editar tus notas de Obsidian al vuelo directamente en el navegador de forma rápida y sencilla:
+
+- **Botonera en Cabecera:** Los botones de **Guardar cambios** y **Cancelar** se encuentran en la cabecera (al lado del breadcrumb) para un acceso rápido e intuitivo.
+- **Esquema de Colores Dinámico:** La interfaz del editor se adapta dinámicamente y de forma automática a los colores de tu tema activo actual de Obsidian.
+- **Tipografía Monospace:** El área de edición conserva una fuente monospace premium para una escritura y estructuración del Markdown cómoda y limpia.
+- **Sincronización Inmediata:** Al guardar los cambios, el archivo se escribe directamente en el disco duro y se refleja inmediatamente mediante WebSockets.
 
 ---
 

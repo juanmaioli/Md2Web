@@ -64,7 +64,7 @@ npm install
 ```env
 MD_PATH=/home/juan/Documentos/Notas/
 PORT=8050
-KOKORO_API_URL=https://localhost:8880/v1/audio/speech
+KOKORO_API_URL=http://localhost:8880/v1/audio/speech
 ```
 
 ### 3. Lanzamiento local

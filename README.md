@@ -9,7 +9,8 @@
 - **🎨 Estética de Vanguardia:** Soporte nativo para **20+ temas de Obsidian** (Dracula, Catppuccin, Tokyo Night, etc.).
 - **🔤 Tipografía Accesible:** Integración de la tipografía **Lato** de Google Fonts en toda la interfaz para maximizar la legibilidad y accesibilidad visual.
 - **📝 Edición Web Directa:** Modificación de notas al vuelo desde el navegador con un editor adaptado al tema y guardado directo en disco.
-- **🎙️ Escucha Activa (TTS):** Transforma tus notas en audiolibros con **resaltado tipo karaoke** y voces de alta calidad.
+- **🎙️ Escucha Activa con Kokoro (TTS):** Transforma tus notas en audiolibros utilizando el motor hiperrealista **Kokoro 82M** ejecutado de manera local mediante Docker.
+- **🎵 Descarga de Notas en MP3:** Descargá tus notas completas en formato MP3 con un **modal de progreso en tiempo real**.
 - **⚡ Rendimiento Extremo:** Navegación fluida y carga instantánea incluso con miles de archivos.
 - **🔄 Live Sync:** Visualización en tiempo real de tus cambios mediante **WebSockets**.
 - **💻 Syntax Pro:** Resaltado de código profesional con **Highlight.js**.
@@ -18,23 +19,33 @@
 
 ---
 
-## 🎙️ Nueva Función: Lectura en Voz Alta
+## 🎙️ Nueva Función: Lectura con Kokoro 82M
 
-Md2Web ahora incluye un motor de **Text-to-Speech (TTS)** avanzado diseñado para la accesibilidad:
+Md2Web ahora integra el motor de **Text-to-Speech (TTS)** hiperrealista Kokoro 82M:
 
-- **Selección de Voces:** Compatible con múltiples voces en español (incluyendo *Google español de EE.UU.* y *es-AR*).
-- **Efecto Karaoke:** Resaltado visual sincronizado de la frase que se está leyendo.
-- **Modo Inmersivo:** Interfaz a pantalla completa para una lectura sin distracciones.
-- **Auto-Scroll:** La pantalla acompaña la lectura para que nunca pierdas el hilo.
+- **Voces Hiperrealistas:** Soporte para voces de alta calidad con crossover multilingüe (`em_santa`, `em_alex`, `ef_dora`) que logran lecturas hiperrealistas en español.
+- **Efecto Karaoke:** Resaltado visual en tiempo real de la oración que se está reproduciendo.
+- **Modo Inmersivo:** Pantalla completa limpia para leer y escuchar tus notas sin distracciones.
+- **Auto-Scroll Inteligente:** La vista acompaña la lectura de manera fluida en cada oración.
+
+---
+
+## 📥 Nueva Función: Descarga MP3 con Progreso
+
+Ahora podés guardar tus notas para escucharlas sin conexión en cualquier dispositivo:
+
+- **Consolidación en el Cliente:** La aplicación segmenta el texto y genera el audio fragmento por fragmento en tiempo real.
+- **Modal de Progreso:** Un modal animado te mantiene al tanto de la generación del MP3 indicando el porcentaje actual.
+- **Concatenación Automática:** Se genera un único archivo de descarga consolidado con la nota completa en formato MP3.
 
 ---
 
 ## 📝 Nueva Función: Edición Web Directa
 
-Ahora podés editar tus notas de Obsidian al vuelo directamente en el navegador de forma rápida y sencilla:
+Podés editar tus notas de Obsidian al vuelo directamente en el navegador:
 
-- **Botonera en Cabecera:** Los botones de **Guardar cambios** y **Cancelar** se encuentran en la cabecera (al lado del breadcrumb) para un acceso rápido e intuitivo.
-- **Esquema de Colores Dinámico:** La interfaz del editor se adapta dinámicamente y de forma automática a los colores de tu tema activo actual de Obsidian.
+- **Botonera en Cabecera:** Botones de **Guardar cambios** y **Cancelar** al lado del breadcrumb para fácil acceso.
+- **Esquema de Colores Dinámico:** La interfaz del editor se adapta de forma automática al tema activo de Obsidian.
 - **Tipografía Monospace:** El área de edición conserva una fuente monospace premium para una escritura y estructuración del Markdown cómoda y limpia.
 - **Sincronización Inmediata:** Al guardar los cambios, el archivo se escribe directamente en el disco duro y se refleja inmediatamente mediante WebSockets.
 
@@ -53,29 +64,34 @@ npm install
 ```env
 MD_PATH=/home/juan/Documentos/Notas/
 PORT=8050
+KOKORO_API_URL=https://localhost:8880/v1/audio/speech
 ```
 
-### 3. Lanzamiento
+### 3. Lanzamiento local
 ```bash
 npm start
 ```
 
 ### 🐳 Despliegue con Docker y HTTPS
 
-Md2Web está optimizado para despliegues seguros y modernos.
+Md2Web está preparado para correr en Docker conectado de forma segura a la red de Kokoro.
 
 ### 1. Requisitos Previos
 - **Docker** y **Docker Compose**.
 - Certificados SSL (`apache.crt` y `apache.key`) en la carpeta `./ssl`.
+- El contenedor de la API de Kokoro (`kokoro-tts`) activo en la red externa `kokoro-network`.
 
 ### 2. Puesta en Marcha
 ```bash
-# Inicia la infraestructura segura
+# Asegurarse de que la red externa esté creada
+docker network create kokoro-network
+
+# Iniciar la infraestructura segura
 docker compose up -d --build
 ```
 
 ### 3. Acceso Seguro
-Accede mediante **HTTPS** y **WSS** (WebSockets Seguros) en: [https://drawers.docker:8050](https://drawers.docker:8050)
+Accedé mediante **HTTPS** y **WSS** (WebSockets Seguros) en: [https://drawers.docker:8050](https://drawers.docker:8050)
 
 ---
 
@@ -87,4 +103,5 @@ Desarrollado con ❤️ por **Juan Gabriel Maioli**.
 ---
 
 ## 📄 Licencia
+
 Este proyecto es de uso personal y privado.

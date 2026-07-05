@@ -1,15 +1,19 @@
 require('dotenv').config();
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const express = require('express');
 const http = require('http');
 const https = require('https');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
+const { Readable } = require('stream');
 const { marked } = require('marked');
 const { markedHighlight } = require('marked-highlight');
 const hljs = require('highlight.js');
 const { getSetting, updateSetting } = require('./database');
 const initWatcher = require('./watcher');
+
+const KOKORO_API_URL = process.env.KOKORO_API_URL || 'https://localhost:8880/v1/audio/speech';
 
 // Configuración moderna de marked con Highlight.js integrado
 marked.use(
@@ -31,6 +35,7 @@ marked.use({
 
 const app = express();
 let server;
+let isHttps = false;
 
 const PORT = process.env.PORT || 8050;
 const MD_PATH = process.env.MD_PATH || path.join(__dirname, 'notes');
@@ -47,6 +52,7 @@ if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
         key: fs.readFileSync(keyPath)
     };
     server = https.createServer(options, app);
+    isHttps = true;
     console.log('🔒 Servidor configurado con HTTPS');
 } else {
     server = http.createServer(app);
@@ -242,6 +248,107 @@ app.get('/api/search', (req, res) => {
     res.json(results);
 });
 
+// Endpoint de proxy para síntesis de voz con Kokoro TTS
+app.post('/api/tts', express.json(), async (req, res) => {
+    const { input, voice, speed } = req.body;
+
+    if (!input) {
+        return res.status(400).json({ error: 'Falta el texto de entrada' });
+    }
+
+    try {
+        const langCode = (voice || 'em_santa').charAt(0);
+
+        const response = await fetch(KOKORO_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'kokoro',
+                input: input,
+                voice: voice || 'em_santa',
+                response_format: 'mp3',
+                speed: parseFloat(speed) || 1.0,
+                lang_code: langCode
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error de Kokoro API:', errorText);
+            return res.status(response.status).json({ error: errorText });
+        }
+
+        res.setHeader('Content-Type', 'audio/mpeg');
+        
+        // Convertimos el ReadableStream estándar de fetch a un stream de Node.js
+        const nodeStream = Readable.fromWeb(response.body);
+        nodeStream.pipe(res);
+    } catch (error) {
+        console.error('❌ Error en proxy /api/tts:', error);
+        res.status(500).json({ error: 'Error al comunicarse con el motor Kokoro.' });
+    }
+});
+
+// Endpoint para descargar una nota consolidada en un solo archivo MP3
+app.post('/api/tts/download', express.json(), async (req, res) => {
+    const { text, voice, speed } = req.body;
+
+    if (!text) {
+        return res.status(400).json({ error: 'Falta el texto de la noticia' });
+    }
+
+    try {
+        const langCode = (voice || 'em_santa').charAt(0);
+        // Dividir el texto en oraciones para evitar que supere el límite de tokens de Kokoro
+        const sentences = text.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(s => s.length > 0);
+        const audioBuffers = [];
+
+        console.log(`📥 [TTS Download] Iniciando generación consolidada de ${sentences.length} fragmentos.`);
+
+        for (const sentence of sentences) {
+            const response = await fetch(KOKORO_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'kokoro',
+                    input: sentence,
+                    voice: voice || 'em_santa',
+                    response_format: 'mp3',
+                    speed: parseFloat(speed) || 1.0,
+                    lang_code: langCode
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Error de fragmento en Kokoro API:', errorText);
+                continue;
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            audioBuffers.push(Buffer.from(arrayBuffer));
+        }
+
+        if (audioBuffers.length === 0) {
+            return res.status(500).json({ error: 'No se pudo generar ningún fragmento de audio.' });
+        }
+
+        const finalBuffer = Buffer.concat(audioBuffers);
+        console.log(`✅ [TTS Download] Generación finalizada. Tamaño total: ${finalBuffer.length} bytes.`);
+
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Content-Length', finalBuffer.length);
+        res.send(finalBuffer);
+    } catch (error) {
+        console.error('❌ Error en proxy /api/tts/download:', error);
+        res.status(500).json({ error: 'Error al comunicarse con el motor Kokoro.' });
+    }
+});
+
 // Manejo de errores 404 para otros archivos
 app.use((req, res) => {
     res.status(404).send('No encontrado');
@@ -249,7 +356,7 @@ app.use((req, res) => {
 
 server.listen(PORT, () => {
     console.log(`\n---------------------------------------------------`);
-    console.log(`🚀 Md2Web corriendo en http://localhost:${PORT}`);
+    console.log(`🚀 Md2Web corriendo en ${isHttps ? 'https' : 'http'}://localhost:${PORT}`);
     console.log(`📂 Ruta de notas: ${MD_PATH}`);
     console.log(`⌛ Procesando archivos... Esperá al mensaje de 'Sistema listo'.`);
     console.log(`---------------------------------------------------\n`);

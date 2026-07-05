@@ -15,5 +15,12 @@ services:
     environment:
       - MD_PATH=/app/notes
       - PORT=8050
+      - KOKORO_API_URL=https://kokoro-tts:8880/v1/audio/speech
     # Configurar el hostname para que responda internamente (opcional)
     hostname: drawers.docker
+    networks:
+      - kokoro-network
+
+networks:
+  kokoro-network:
+    external: true

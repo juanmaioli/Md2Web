@@ -176,6 +176,24 @@
         </div>
     </div>
 
+    <!-- Modal de Progreso de Descarga -->
+    <div class="modal fade" id="modalProgresoDescarga" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">📥 Generando MP3</h5>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <p id="progresoTexto" class="mb-3">Preparando texto...</p>
+                    <div class="progress bg-secondary mb-2" style="height: 10px;">
+                        <div id="progresoBarra" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%;"></div>
+                    </div>
+                    <small class="text-secondary">Por favor, no cierres esta ventana. Kokoro está procesando el texto.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container-fluid">
 
         <div class="row">
@@ -294,41 +312,61 @@
             }
         });
 
-        // --- Lógica TTS (Web Speech API) ---
+        // --- Lógica TTS (Kokoro TTS) ---
         const btnEscuchar = document.getElementById('btnEscuchar');
         const modalLectura = new bootstrap.Modal(document.getElementById('modalLectura'));
         const modalTitular = document.getElementById('modalTitular');
         const modalCuerpo = document.getElementById('modalCuerpo');
         const voiceSelect = document.getElementById('voiceSelect');
+        let ttsAudio = null;
 
         function cargarVoces() {
-            const voices = window.speechSynthesis.getVoices();
-            const spanishVoices = voices.filter(v => v.lang.startsWith('es'));
-            
             voiceSelect.innerHTML = '';
-            spanishVoices.forEach(voice => {
+            const kokoroVoices = [
+                { name: 'em_santa', label: '🎅 Santa (em_santa)' },
+                { name: 'em_alex', label: '👨 Alex (em_alex)' },
+                { name: 'ef_dora', label: '👩 Dora (ef_dora)' }
+            ];
+
+            kokoroVoices.forEach(voice => {
                 const option = document.createElement('option');
-                option.textContent = `${voice.name} (${voice.lang})`;
+                option.textContent = voice.label;
                 option.value = voice.name;
-                
-                // Prioridad: Google español de EE.UU. > es-AR
-                if (voice.name === 'Google español de Estados Unidos') {
-                    option.selected = true;
-                } else if (voice.lang === 'es-AR' && !voiceSelect.querySelector('[selected]')) {
-                    option.selected = true;
-                }
-                
+                if (voice.name === 'em_santa') option.selected = true;
                 voiceSelect.appendChild(option);
             });
         }
 
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = cargarVoces;
-        }
         cargarVoces();
 
-        function leerTexto(texto, container, config = {}) {
-            const { voiceName, rate = 1.0, pitch = 1.0 } = config;
+        async function hablarTextoKokoro(texto, voice, speed) {
+            if (ttsAudio) {
+                ttsAudio.pause();
+                ttsAudio = null;
+            }
+
+            const response = await fetch('/api/tts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ input: texto, voice, speed })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(errText || 'Error al obtener la voz de Kokoro');
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            ttsAudio = new Audio(url);
+            ttsAudio.dataset.blobUrl = url;
+
+            return ttsAudio;
+        }
+
+        function leerTexto(texto, container) {
             const audioChunks = [];
             const allSpans = [];
             container.innerHTML = '';
@@ -346,10 +384,14 @@
                 }
             });
 
-            window.speechSynthesis.cancel();
+            if (ttsAudio) {
+                ttsAudio.pause();
+                ttsAudio = null;
+            }
+
             let chunkIndex = 0;
 
-            function hablarSiguiente() {
+            async function hablarSiguiente() {
                 if (chunkIndex >= audioChunks.length || !document.getElementById('modalLectura').classList.contains('show')) {
                     return;
                 }
@@ -358,19 +400,38 @@
                 allSpans[chunkIndex].classList.add('tts-active');
                 allSpans[chunkIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                const utterance = new SpeechSynthesisUtterance(audioChunks[chunkIndex]);
-                const voices = window.speechSynthesis.getVoices();
-                const voice = voices.find(v => v.name === voiceSelect.value);
-                if (voice) utterance.voice = voice;
-                utterance.rate = rate;
-                utterance.pitch = pitch;
+                try {
+                    const selectedVoiceName = voiceSelect.value;
+                    const audio = await hablarTextoKokoro(audioChunks[chunkIndex], selectedVoiceName, 1.0);
 
-                utterance.onend = () => {
+                    if (!document.getElementById('modalLectura').classList.contains('show')) {
+                        audio.pause();
+                        URL.revokeObjectURL(audio.dataset.blobUrl);
+                        if (ttsAudio === audio) ttsAudio = null;
+                        return;
+                    }
+
+                    audio.onended = () => {
+                        URL.revokeObjectURL(audio.dataset.blobUrl);
+                        chunkIndex++;
+                        hablarSiguiente();
+                    };
+
+                    audio.onerror = (e) => {
+                        console.error('Error al reproducir el chunk de audio:', e);
+                        alert('Error en elemento de Audio al reproducir.');
+                        URL.revokeObjectURL(audio.dataset.blobUrl);
+                        chunkIndex++;
+                        hablarSiguiente();
+                    };
+
+                    audio.play();
+                } catch (err) {
+                    console.error('Error en TTS con Kokoro:', err);
+                    alert('Error en TTS: ' + err.message);
                     chunkIndex++;
-                    hablarSiguiente();
-                };
-
-                window.speechSynthesis.speak(utterance);
+                    setTimeout(hablarSiguiente, 1000);
+                }
             }
 
             setTimeout(hablarSiguiente, 150);
@@ -388,8 +449,97 @@
             });
         }
 
+        const btnDescargarMP3 = document.getElementById('btnDescargarMP3');
+        const modalProgreso = new bootstrap.Modal(document.getElementById('modalProgresoDescarga'));
+        const progresoTexto = document.getElementById('progresoTexto');
+        const progresoBarra = document.getElementById('progresoBarra');
+
+        if (btnDescargarMP3) {
+            btnDescargarMP3.addEventListener('click', async () => {
+                const article = document.querySelector('.markdown-rendered');
+                const titulo = document.querySelector('.breadcrumb-item.active')?.innerText || 'Nota';
+                const contenido = article.innerText;
+                const voice = voiceSelect.value || 'em_santa';
+
+                const originalHTML = btnDescargarMP3.innerHTML;
+                btnDescargarMP3.disabled = true;
+
+                // Segmentar texto en oraciones
+                const sentences = contenido.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(s => s.length > 0);
+                const total = sentences.length;
+
+                if (total === 0) {
+                    alert('La nota no tiene contenido para procesar.');
+                    btnDescargarMP3.disabled = false;
+                    return;
+                }
+
+                // Inicializar y mostrar modal de progreso
+                progresoTexto.innerText = `Preparando generación (0 de ${total})...`;
+                progresoBarra.style.width = '0%';
+                progresoBarra.innerText = '0%';
+                modalProgreso.show();
+
+                const audioBlobs = [];
+
+                try {
+                    for (let i = 0; i < total; i++) {
+                        progresoTexto.innerText = `Procesando fragmento ${i + 1} de ${total}...`;
+                        const pct = Math.round(((i + 1) / total) * 100);
+                        progresoBarra.style.width = `${pct}%`;
+                        progresoBarra.innerText = `${pct}%`;
+
+                        const response = await fetch('/api/tts', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ input: sentences[i], voice, speed: 1.0 })
+                        });
+
+                        if (!response.ok) {
+                            const errText = await response.text();
+                            throw new Error(errText || `Error en fragmento ${i + 1}`);
+                        }
+
+                        const blob = await response.blob();
+                        audioBlobs.push(blob);
+                    }
+
+                    // Concatenar todos los blobs generados en un archivo MP3 final
+                    const finalBlob = new Blob(audioBlobs, { type: 'audio/mpeg' });
+                    const url = URL.createObjectURL(finalBlob);
+                    
+                    const cleanTitular = titulo.replace(/[\\/:*?"<>|]/g, "").trim();
+                    const filename = `${cleanTitular}.mp3`;
+
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (err) {
+                    console.error('Error al generar el MP3:', err);
+                    alert('Hubo un error al intentar generar el MP3 de la nota: ' + err.message);
+                } finally {
+                    // Ocultar modal y habilitar botón
+                    modalProgreso.hide();
+                    btnDescargarMP3.disabled = false;
+                    btnDescargarMP3.innerHTML = originalHTML;
+                }
+            });
+        }
+
         document.getElementById('modalLectura').addEventListener('hidden.bs.modal', () => {
-            window.speechSynthesis.cancel();
+            if (ttsAudio) {
+                ttsAudio.pause();
+                if (ttsAudio.dataset.blobUrl) {
+                    URL.revokeObjectURL(ttsAudio.dataset.blobUrl);
+                }
+                ttsAudio = null;
+            }
         });
     </script>
 </body>
